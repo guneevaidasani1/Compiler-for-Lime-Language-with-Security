@@ -20,6 +20,7 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 const toastContainer = document.getElementById('toastContainer');
 const lineCount = document.getElementById('lineCount');
 const charCount = document.getElementById('charCount');
+const particleCanvas = document.getElementById('particleCanvas');
 let lastResults = null;
 
 // Theme management
@@ -47,6 +48,34 @@ if (mobileMenuToggle && leftPane) {
     leftPane.classList.toggle('mobile-open');
   });
 }
+
+// Magnetic/tilt interactions
+function attachTilt(selector, opts = { maxTilt: 6, translate: 6 }) {
+  document.querySelectorAll(selector).forEach(el => {
+    el.classList.add('tiltable');
+    const maxT = opts.maxTilt, maxTr = opts.translate;
+    function onMove(e) {
+      const rect = el.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width - 0.5;
+      const py = (e.clientY - rect.top) / rect.height - 0.5;
+      el.style.setProperty('--tiltX', `${(-py * maxT).toFixed(2)}deg`);
+      el.style.setProperty('--tiltY', `${(px * maxT).toFixed(2)}deg`);
+      el.style.setProperty('--tx', `${(px * maxTr).toFixed(1)}px`);
+      el.style.setProperty('--ty', `${(py * maxTr).toFixed(1)}px`);
+    }
+    function onLeave() {
+      el.style.setProperty('--tiltX', '0deg');
+      el.style.setProperty('--tiltY', '0deg');
+      el.style.setProperty('--tx', '0px');
+      el.style.setProperty('--ty', '0px');
+    }
+    el.addEventListener('mousemove', onMove);
+    el.addEventListener('mouseleave', onLeave);
+  });
+}
+attachTilt('.editor-card, .panel, .finding', { maxTilt: 5, translate: 4 });
+attachTilt('.analyze-btn', { maxTilt: 4, translate: 3 });
+attachTilt('.pill', { maxTilt: 4, translate: 2 });
 
 // Toast notification system
 function showToast(message, type = 'info', duration = 3000) {
@@ -88,6 +117,16 @@ function updateEditorStats() {
   autoSaveTimeout = setTimeout(() => {
     localStorage.setItem('editor-content', text);
   }, 1000);
+}
+
+// Add pulse on analyze click (visual only)
+if (analyzeBtn) {
+  analyzeBtn.addEventListener('click', () => {
+    analyzeBtn.classList.remove('pulse');
+    // reflow to restart animation
+    void analyzeBtn.offsetWidth;
+    analyzeBtn.classList.add('pulse');
+  });
 }
 
 // Load saved content
@@ -157,6 +196,64 @@ if (copyOutputBtn) {
 if (confSlider && confVal) {
   confVal.textContent = Number(confSlider.value).toFixed(2);
 }
+
+// Animated particle background (subtle)
+(function initParticles(){
+  if (!particleCanvas) return;
+  const ctx = particleCanvas.getContext('2d');
+  const state = { dpr: Math.min(window.devicePixelRatio || 1, 2), w: 0, h: 0, parts: [], mouse: { x: 0, y: 0 } };
+  const MAX = 80, LINK_DIST = 120;
+  function resize(){
+    const rect = particleCanvas.getBoundingClientRect();
+    state.w = Math.floor(rect.width);
+    state.h = Math.floor(rect.height);
+    const dpr = state.dpr;
+    particleCanvas.width = Math.max(1, Math.floor(state.w * dpr));
+    particleCanvas.height = Math.max(1, Math.floor(state.h * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!state.parts.length) {
+      for (let i=0;i<MAX;i++) state.parts.push(spawn());
+    }
+  }
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function spawn(){
+    return { x: rand(0, state.w), y: rand(0, state.h), vx: rand(-0.2,0.2), vy: rand(-0.2,0.2), r: rand(0.8,1.8) };
+  }
+  function step(){
+    ctx.clearRect(0,0,state.w,state.h);
+    const hue = 224; // indigo-ish
+    for (let i=0;i<state.parts.length;i++){
+      const p = state.parts[i];
+      // gentle mouse parallax
+      p.vx += (state.mouse.x - state.w/2) * 0.000002;
+      p.vy += (state.mouse.y - state.h/2) * 0.000002;
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < -10 || p.x > state.w+10 || p.y < -10 || p.y > state.h+10){ state.parts[i] = spawn(); continue; }
+      ctx.fillStyle = `rgba(255,255,255,0.12)`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+    }
+    // links
+    ctx.strokeStyle = 'rgba(90,122,255,0.10)';
+    for (let i=0;i<state.parts.length;i++){
+      const a = state.parts[i];
+      for (let j=i+1;j<state.parts.length;j++){
+        const b = state.parts[j];
+        const dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy);
+        if (d<LINK_DIST){
+          ctx.globalAlpha = 1 - d/LINK_DIST;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(step);
+  }
+  resize(); step();
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', (e)=>{ state.mouse.x = e.clientX; state.mouse.y = e.clientY; });
+  // Re-paint after theme change
+  if (themeToggle) themeToggle.addEventListener('click', ()=> setTimeout(resize, 50));
+})();
 
 // Sample Lime programs (aligned with your grammar)
 const samples = {
@@ -388,6 +485,8 @@ function renderResults(data) {
 
   // Render findings
   findingsEl.innerHTML = findings.map(f => findingCard(f)).join('');
+  // Re-attach tilt for dynamically inserted findings
+  attachTilt('.finding', { maxTilt: 5, translate: 4 });
 }
 
 function findingCard(f) {
