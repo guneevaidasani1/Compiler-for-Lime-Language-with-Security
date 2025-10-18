@@ -1,12 +1,6 @@
-// Secure: constant format string + parameterization
+// Format String vulnerability: user input as format string
 fn main() -> int {
-    let user_input: str = "Abhinaw";
-    let user1: str = "Guneev";
-    let user3: str = "Hardik";
-    printf("%s\n", user_input);
-    printf("%s\n", user1);
-    printf("%s\n", user3);
-
-
+    let user_input: str = "admin";
+    printf(user_input);
     return 0;
 }

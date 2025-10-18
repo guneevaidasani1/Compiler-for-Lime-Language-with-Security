@@ -25,6 +25,7 @@ class Compiler:
 
     
         self.module: ir.Module = ir.Module('main')
+        self.target_triple: str = "x86_64-pc-windows-msvc"
 
         
         self.builder: ir.IRBuilder = ir.IRBuilder()
