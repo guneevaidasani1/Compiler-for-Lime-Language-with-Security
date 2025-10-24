@@ -12,6 +12,29 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@200;300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%237c9cff'/><stop offset='100%' stop-color='%235eead4'/></linearGradient></defs><text y='.9em' font-size='90' fill='url(%23g)'>🛡️</text></svg>">
+  <style>
+
+    .chat-bar{display:flex;align-items:center;gap:.5rem;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);border-radius:9999px;padding:.5rem .5rem .5rem .9rem;box-shadow:0 6px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.05)}
+    [data-theme="light"] .chat-bar{border-color:rgba(0,0,0,.12);box-shadow:0 6px 18px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.5)}
+    #chatInput{flex:1;background:transparent;border:none;outline:none;color:inherit;font:inherit;padding:.45rem .25rem}
+    #chatInput::placeholder{color:rgba(255,255,255,.5)}
+    [data-theme="light"] #chatInput::placeholder{color:rgba(0,0,0,.45)}
+    #sendChatBtn{border-radius:9999px;padding:.5rem .9rem;background:linear-gradient(180deg,#6b7cff,#4e63ff);border:1px solid rgba(255,255,255,.18);color:white}
+    #sendChatBtn:hover{filter:brightness(1.05)}
+    #sendChatBtn:disabled{opacity:.6;cursor:not-allowed}
+    /* Chat panel sizing */
+    #chatMessages{max-height:240px; overflow:auto}
+    .chat-panel{position:relative}
+    .chat-panel.expanded{position:fixed; inset:5% 5%; z-index:2000; background:rgba(0,0,0,.65); backdrop-filter: blur(8px); border-radius:12px; padding:0.5rem; box-shadow:0 20px 60px rgba(0,0,0,.45)}
+    .chat-panel.expanded .panel-content{max-height:calc(100% - 56px); overflow:auto}
+    .chat-panel.expanded #chatMessages{max-height:70vh}
+    /* Distinct colors for chat action buttons */
+    #clearChatBtn{background:linear-gradient(180deg,#ef4444,#dc2626);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:.25rem .5rem}
+    #clearChatBtn:hover{filter:brightness(1.08)}
+    #expandChatBtn{background:linear-gradient(180deg,#10b981,#059669);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:.25rem .5rem;margin-left:.25rem}
+    #expandChatBtn:hover{filter:brightness(1.08)}
+    [data-theme="light"] #clearChatBtn,[data-theme="light"] #expandChatBtn{border-color:rgba(0,0,0,.15)}
+  </style>
 </head>
 <body>
   <!-- Animated Background -->
@@ -248,6 +271,34 @@
         </div>
         <div class="panel-content">
           <pre id="output" class="console small" role="log"></pre>
+        </div>
+      </section>
+
+      <!-- AI Chatbot (Gemini) -->
+      <section id="chatPanel" class="panel chat-panel" aria-labelledby="chat-heading">
+        <div class="panel-header">
+          <h3 id="chat-heading" class="panel-title">
+            <span class="panel-icon">🤖</span>
+            AI Chatbot
+          </h3>
+          <div class="panel-actions">
+            <button type="button" class="btn-icon" id="clearChatBtn" aria-label="Clear chat" title="Clear chat">
+              <span>🧹</span>
+            </button>
+            <button type="button" class="btn-icon" id="expandChatBtn" aria-label="Expand chat" title="Expand/Restore">
+              <span id="expandIcon">⤢</span>
+            </button>
+            <button type="button" class="btn-icon panel-toggle" aria-label="Toggle panel" title="Collapse/Expand">
+              <span class="toggle-icon">▼</span>
+            </button>
+          </div>
+        </div>
+        <div class="panel-content">
+          <div id="chatMessages" class="console small" role="log" aria-live="polite" style="white-space: pre-wrap;"></div>
+          <div class="chat-bar" style="margin-top: .5rem;">
+            <input id="chatInput" type="text" placeholder="Ask about vulnerabilities, fixes, or Lime syntax..." aria-label="Chat input" />
+            <button id="sendChatBtn" class="primary" type="button">Send</button>
+          </div>
         </div>
       </section>
     </section>

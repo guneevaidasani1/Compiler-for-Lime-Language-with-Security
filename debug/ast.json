@@ -17,13 +17,52 @@
               "type": "LetStatement",
               "name": {
                 "type": "IdentifierLiteral",
-                "value": "user_input"
+                "value": "n"
               },
               "value": {
-                "type": "StringLiteral",
-                "value": "admin"
+                "type": "IntegerLiteral",
+                "value": 1
               },
-              "value_type": "str"
+              "value_type": "int"
+            },
+            {
+              "type": "WhileStatement",
+              "condition": {
+                "type": "InfixExpression",
+                "left_node": {
+                  "type": "IdentifierLiteral",
+                  "value": "n"
+                },
+                "operator": "<",
+                "right_node": {
+                  "type": "IntegerLiteral",
+                  "value": 1000000
+                }
+              },
+              "body": {
+                "type": "BlockStatement",
+                "statements": [
+                  {
+                    "type": "AssignStatement",
+                    "ident": {
+                      "type": "IdentifierLiteral",
+                      "value": "n"
+                    },
+                    "right_value": {
+                      "type": "InfixExpression",
+                      "left_node": {
+                        "type": "IdentifierLiteral",
+                        "value": "n"
+                      },
+                      "operator": "+",
+                      "right_node": {
+                        "type": "IntegerLiteral",
+                        "value": 1
+                      }
+                    }
+                  }
+                ]
+              }
             },
             {
               "type": "ExpressionStatement",
@@ -35,8 +74,8 @@
                 },
                 "arguments": [
                   {
-                    "type": "IdentifierLiteral",
-                    "value": "user_input"
+                    "type": "StringLiteral",
+                    "value": "Done\\n"
                   }
                 ]
               }

@@ -1,6 +1,9 @@
-// Format String vulnerability: user input as format string
+// Lime sample (illustrative): tight loop without guard can hint at resource issues
 fn main() -> int {
-    let user_input: str = "admin";
-    printf(user_input);
+    let n: int = 1;
+    while (n < 1000000) {
+        n = n + 1;
+    }
+    printf("Done\n");
     return 0;
 }

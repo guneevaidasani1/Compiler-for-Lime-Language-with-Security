@@ -21,9 +21,73 @@ const toastContainer = document.getElementById('toastContainer');
 const lineCount = document.getElementById('lineCount');
 const charCount = document.getElementById('charCount');
 const particleCanvas = document.getElementById('particleCanvas');
+
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendChatBtn = document.getElementById('sendChatBtn');
+const clearChatBtn = document.getElementById('clearChatBtn');
+const expandChatBtn = document.getElementById('expandChatBtn');
+const chatPanel = document.getElementById('chatPanel');
+const expandIcon = document.getElementById('expandIcon');
 let lastResults = null;
 
-// Theme management
+
+const GEMINI_API_KEY = 'AIzaSyD33KJwZj9CN2skx61N0cYDhz2Xa_VI6l0   ';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+
+
+const LIME_PRIMER = `You are an expert assistant for the Lime programming language used in this app.
+Teach, answer questions, and generate Lime code. Be concise and accurate.
+When you provide code, use idiomatic Lime and end statements with semicolons.
+
+Lime Lexical/Syntax:
+- Line comments: // ...
+- Literals: integers (123), floats (1.23), strings ("text"), booleans true/false.
+- Operators: +, -, *, /, %, ^ (power). Comparisons: <, <=, >, >=, ==, !=. Assignment: =.
+- Types: int, float, str, void.
+
+Core forms:
+- Variable declaration: let name: TYPE = EXPR;
+- Assignment: name = EXPR;
+- Function: fn name(param1: TYPE, param2: TYPE) -> RETTYPE { STATEMENTS }
+  - return EXPR; inside function.
+- Conditionals: if CONDITION { ... } else { ... }
+- Loops: while CONDITION { ... }
+- For loop: for (let i: int = 0; i < N; i = i + 1) { ... }
+- Function call: ident(arg1, arg2);
+- Import file: import "path";
+- Grouping with ( ) and blocks with { }.
+
+Alternate aliases supported by the compiler (map to real tokens):
+- lit -> let, bruh -> fn, pause -> return, sus -> if, imposter -> else,
+  wee -> while, yeet -> break, anothaone -> continue, dab -> for, gib -> import,
+  be -> =, rn -> ;, 3--D -> ->
+
+Conventions and examples:
+- Printing uses printf("%s\\n", value); prefer constant format strings.
+- Example program:
+  fn greet(name: str) -> void {
+      printf("Hello, %s\\n", name);
+  }
+  fn add(a: int, b: int) -> int {
+      return a + b;
+  }
+  fn main() -> int {
+      let x: int = 2;
+      let y: int = 3;
+      let z: int = add(x, y);
+      if z > 4 { printf("big\\n"); } else { printf("small\\n"); }
+      for (let i: int = 0; i < 3; i = i + 1) { printf("%s\\n", "loop"); }
+      return 0;
+  }
+
+Assistant behavior:
+- Explain Lime syntax and semantics clearly.
+- Provide step-by-step reasoning when asked; otherwise keep it short.
+- When a user pastes Lime, identify errors with exact fixes and secure patterns.
+`;
+
 let currentTheme = localStorage.getItem('theme') || 'dark';
 document.documentElement.setAttribute('data-theme', currentTheme);
 
@@ -41,7 +105,7 @@ if (themeToggle) {
   });
 }
 
-// Mobile menu toggle
+
 if (mobileMenuToggle && leftPane) {
   mobileMenuToggle.addEventListener('click', () => {
     mobileMenuToggle.classList.toggle('active');
@@ -49,7 +113,7 @@ if (mobileMenuToggle && leftPane) {
   });
 }
 
-// Magnetic/tilt interactions
+
 function attachTilt(selector, opts = { maxTilt: 6, translate: 6 }) {
   document.querySelectorAll(selector).forEach(el => {
     el.classList.add('tiltable');
@@ -77,7 +141,7 @@ attachTilt('.editor-card, .panel, .finding', { maxTilt: 5, translate: 4 });
 attachTilt('.analyze-btn', { maxTilt: 4, translate: 3 });
 attachTilt('.pill', { maxTilt: 4, translate: 2 });
 
-// Toast notification system
+
 function showToast(message, type = 'info', duration = 3000) {
   if (!toastContainer) return;
   
@@ -100,7 +164,7 @@ function showToast(message, type = 'info', duration = 3000) {
   }, duration);
 }
 
-// Editor statistics and auto-save
+
 let autoSaveTimeout;
 function updateEditorStats() {
   if (!editor || !lineCount || !charCount) return;
@@ -598,3 +662,104 @@ document.querySelectorAll('.panel .panel-toggle').forEach(btn => {
     if (icon) icon.textContent = panel.classList.contains('collapsed') ? '►' : '▼';
   });
 });
+
+// ========== Simple Gemini Chatbot ==========
+const chatHistory = [];
+// Seed conversation with the Lime primer once per session
+if (!sessionStorage.getItem('limePrimerSeeded')) {
+  chatHistory.push({ role: 'user', parts: [{ text: LIME_PRIMER }] });
+  sessionStorage.setItem('limePrimerSeeded', '1');
+}
+
+// Simple markdown parser for bot responses
+function parseMarkdown(text) {
+  return text
+    // Code blocks ```code```
+    .replace(/```([\s\S]*?)```/g, '<pre style="background:rgba(255,255,255,0.1);padding:0.5rem;border-radius:4px;margin:0.5rem 0;overflow-x:auto;"><code>$1</code></pre>')
+    // Inline code `code`
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:0.1rem 0.3rem;border-radius:3px;">$1</code>')
+    // Bold **text**
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // Italic *text*
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    // Line breaks
+    .replace(/\n/g, '<br>');
+}
+
+function appendChat(role, text) {
+  if (!chatMessages) return;
+  const who = role === 'user' ? 'You' : 'Assistant';
+  const color = role === 'user' ? '#9ae6b4' : '#c3dafe';
+  const block = document.createElement('div');
+  block.style.margin = '0.5rem 0';
+  block.style.padding = '0.5rem';
+  block.style.borderLeft = `3px solid ${color}`;
+  block.style.backgroundColor = 'rgba(255,255,255,0.02)';
+  block.style.borderRadius = '4px';
+  
+  const content = role === 'user' ? escapeHtml(text) : parseMarkdown(escapeHtml(text));
+  block.innerHTML = `<strong style="color:${color};margin-bottom:0.25rem;display:block;">${who}:</strong><div>${content}</div>`;
+  
+  chatMessages.appendChild(block);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendChat() {
+  if (!chatInput || !sendChatBtn) return;
+  const userMsg = chatInput.value.trim();
+  if (!userMsg) return;
+
+  // Include editor content to ground answers in your current Lime code
+  const ctx = editor && editor.value ? `\n\nContext (current Lime code):\n${editor.value.slice(0, 4000)}` : '';
+  const prompt = `${userMsg}${ctx}`;
+
+  appendChat('user', userMsg);
+  chatHistory.push({ role: 'user', parts: [{ text: prompt }] });
+  chatInput.value = '';
+  sendChatBtn.disabled = true;
+  sendChatBtn.textContent = 'Sending...';
+  try {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: chatHistory })
+    });
+    const data = await res.json();
+    const parts = (((data || {}).candidates || [])[0] || {}).content?.parts || [];
+    const text = parts.map(p => p && p.text ? p.text : '').join('') || 'No response';
+    chatHistory.push({ role: 'model', parts: [{ text }] });
+    appendChat('model', text);
+  } catch (e) {
+    showToast('Chat request failed', 'error');
+  } finally {
+    sendChatBtn.disabled = false;
+    sendChatBtn.textContent = 'Send';
+  }
+}
+
+if (sendChatBtn && chatInput) {
+  sendChatBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  });
+}
+
+// Clear chat history
+if (clearChatBtn) {
+  clearChatBtn.addEventListener('click', () => {
+    if (chatMessages) chatMessages.innerHTML = '';
+    chatHistory.length = 0;
+    sessionStorage.removeItem('limePrimerSeeded');
+    chatHistory.push({ role: 'user', parts: [{ text: LIME_PRIMER }] });
+    sessionStorage.setItem('limePrimerSeeded', '1');
+    showToast('Chat cleared', 'success');
+  });
+}
+
+// Expand/restore chat panel
+if (expandChatBtn && chatPanel) {
+  expandChatBtn.addEventListener('click', () => {
+    chatPanel.classList.toggle('expanded');
+    if (expandIcon) expandIcon.textContent = chatPanel.classList.contains('expanded') ? '⤡' : '⤢';
+  });
+}
