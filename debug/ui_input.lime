@@ -1,9 +1,33 @@
-// Lime sample (illustrative): tight loop without guard can hint at resource issues
 fn main() -> int {
-    let n: int = 1;
-    while (n < 1000000) {
-        n = n + 1;
+    let n: int = 10; // Change this to print more or fewer Fibonacci numbers
+
+    printf("%s\n", "Fibonacci Series:");
+
+    if n <= 0 {
+        printf("%s\n", "Please enter a positive integer for N.");
+        return 1; // Indicate an error
     }
-    printf("Done\n");
+
+    let a: int = 0;
+    let b: int = 1;
+
+    // Print the first number if n >= 1
+    if n >= 1 {
+        printf("%d\n", a);
+    }
+
+    // Print the second number if n >= 2
+    if n >= 2 {
+        printf("%d\n", b);
+    }
+
+    // Generate and print subsequent numbers
+    for (let i: int = 2; i < n; i = i + 1) {
+        let next_fib: int = a + b;
+        printf("%d\n", next_fib);
+        a = b;
+        b = next_fib;
+    }
+
     return 0;
 }

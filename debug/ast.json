@@ -21,48 +21,9 @@
               },
               "value": {
                 "type": "IntegerLiteral",
-                "value": 1
+                "value": 10
               },
               "value_type": "int"
-            },
-            {
-              "type": "WhileStatement",
-              "condition": {
-                "type": "InfixExpression",
-                "left_node": {
-                  "type": "IdentifierLiteral",
-                  "value": "n"
-                },
-                "operator": "<",
-                "right_node": {
-                  "type": "IntegerLiteral",
-                  "value": 1000000
-                }
-              },
-              "body": {
-                "type": "BlockStatement",
-                "statements": [
-                  {
-                    "type": "AssignStatement",
-                    "ident": {
-                      "type": "IdentifierLiteral",
-                      "value": "n"
-                    },
-                    "right_value": {
-                      "type": "InfixExpression",
-                      "left_node": {
-                        "type": "IdentifierLiteral",
-                        "value": "n"
-                      },
-                      "operator": "+",
-                      "right_node": {
-                        "type": "IntegerLiteral",
-                        "value": 1
-                      }
-                    }
-                  }
-                ]
-              }
             },
             {
               "type": "ExpressionStatement",
@@ -75,7 +36,287 @@
                 "arguments": [
                   {
                     "type": "StringLiteral",
-                    "value": "Done\\n"
+                    "value": "%s\\n"
+                  },
+                  {
+                    "type": "StringLiteral",
+                    "value": "Fibonacci Series:"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expr": {
+                "type": "IfStatement",
+                "condition": {
+                  "type": "InfixExpression",
+                  "left_node": {
+                    "type": "IdentifierLiteral",
+                    "value": "n"
+                  },
+                  "operator": "<=",
+                  "right_node": {
+                    "type": "IntegerLiteral",
+                    "value": 0
+                  }
+                },
+                "consequence": {
+                  "type": "BlockStatement",
+                  "statements": [
+                    {
+                      "type": "ExpressionStatement",
+                      "expr": {
+                        "type": "CallExpression",
+                        "function": {
+                          "type": "IdentifierLiteral",
+                          "value": "printf"
+                        },
+                        "arguments": [
+                          {
+                            "type": "StringLiteral",
+                            "value": "%s\\n"
+                          },
+                          {
+                            "type": "StringLiteral",
+                            "value": "Please enter a positive integer for N."
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "ReturnStatement",
+                      "return_value": {
+                        "type": "IntegerLiteral",
+                        "value": 1
+                      }
+                    }
+                  ]
+                },
+                "alternative": null
+              }
+            },
+            {
+              "type": "LetStatement",
+              "name": {
+                "type": "IdentifierLiteral",
+                "value": "a"
+              },
+              "value": {
+                "type": "IntegerLiteral",
+                "value": 0
+              },
+              "value_type": "int"
+            },
+            {
+              "type": "LetStatement",
+              "name": {
+                "type": "IdentifierLiteral",
+                "value": "b"
+              },
+              "value": {
+                "type": "IntegerLiteral",
+                "value": 1
+              },
+              "value_type": "int"
+            },
+            {
+              "type": "ExpressionStatement",
+              "expr": {
+                "type": "IfStatement",
+                "condition": {
+                  "type": "InfixExpression",
+                  "left_node": {
+                    "type": "IdentifierLiteral",
+                    "value": "n"
+                  },
+                  "operator": ">=",
+                  "right_node": {
+                    "type": "IntegerLiteral",
+                    "value": 1
+                  }
+                },
+                "consequence": {
+                  "type": "BlockStatement",
+                  "statements": [
+                    {
+                      "type": "ExpressionStatement",
+                      "expr": {
+                        "type": "CallExpression",
+                        "function": {
+                          "type": "IdentifierLiteral",
+                          "value": "printf"
+                        },
+                        "arguments": [
+                          {
+                            "type": "StringLiteral",
+                            "value": "%d\\n"
+                          },
+                          {
+                            "type": "IdentifierLiteral",
+                            "value": "a"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "alternative": null
+              }
+            },
+            {
+              "type": "ExpressionStatement",
+              "expr": {
+                "type": "IfStatement",
+                "condition": {
+                  "type": "InfixExpression",
+                  "left_node": {
+                    "type": "IdentifierLiteral",
+                    "value": "n"
+                  },
+                  "operator": ">=",
+                  "right_node": {
+                    "type": "IntegerLiteral",
+                    "value": 2
+                  }
+                },
+                "consequence": {
+                  "type": "BlockStatement",
+                  "statements": [
+                    {
+                      "type": "ExpressionStatement",
+                      "expr": {
+                        "type": "CallExpression",
+                        "function": {
+                          "type": "IdentifierLiteral",
+                          "value": "printf"
+                        },
+                        "arguments": [
+                          {
+                            "type": "StringLiteral",
+                            "value": "%d\\n"
+                          },
+                          {
+                            "type": "IdentifierLiteral",
+                            "value": "b"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "alternative": null
+              }
+            },
+            {
+              "type": "ForStatement",
+              "var_declaration": {
+                "type": "LetStatement",
+                "name": {
+                  "type": "IdentifierLiteral",
+                  "value": "i"
+                },
+                "value": {
+                  "type": "IntegerLiteral",
+                  "value": 2
+                },
+                "value_type": "int"
+              },
+              "condition": {
+                "type": "InfixExpression",
+                "left_node": {
+                  "type": "IdentifierLiteral",
+                  "value": "i"
+                },
+                "operator": "<",
+                "right_node": {
+                  "type": "IdentifierLiteral",
+                  "value": "n"
+                }
+              },
+              "action": {
+                "type": "AssignStatement",
+                "ident": {
+                  "type": "IdentifierLiteral",
+                  "value": "i"
+                },
+                "right_value": {
+                  "type": "InfixExpression",
+                  "left_node": {
+                    "type": "IdentifierLiteral",
+                    "value": "i"
+                  },
+                  "operator": "+",
+                  "right_node": {
+                    "type": "IntegerLiteral",
+                    "value": 1
+                  }
+                }
+              },
+              "body": {
+                "type": "BlockStatement",
+                "statements": [
+                  {
+                    "type": "LetStatement",
+                    "name": {
+                      "type": "IdentifierLiteral",
+                      "value": "next_fib"
+                    },
+                    "value": {
+                      "type": "InfixExpression",
+                      "left_node": {
+                        "type": "IdentifierLiteral",
+                        "value": "a"
+                      },
+                      "operator": "+",
+                      "right_node": {
+                        "type": "IdentifierLiteral",
+                        "value": "b"
+                      }
+                    },
+                    "value_type": "int"
+                  },
+                  {
+                    "type": "ExpressionStatement",
+                    "expr": {
+                      "type": "CallExpression",
+                      "function": {
+                        "type": "IdentifierLiteral",
+                        "value": "printf"
+                      },
+                      "arguments": [
+                        {
+                          "type": "StringLiteral",
+                          "value": "%d\\n"
+                        },
+                        {
+                          "type": "IdentifierLiteral",
+                          "value": "next_fib"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "AssignStatement",
+                    "ident": {
+                      "type": "IdentifierLiteral",
+                      "value": "a"
+                    },
+                    "right_value": {
+                      "type": "IdentifierLiteral",
+                      "value": "b"
+                    }
+                  },
+                  {
+                    "type": "AssignStatement",
+                    "ident": {
+                      "type": "IdentifierLiteral",
+                      "value": "b"
+                    },
+                    "right_value": {
+                      "type": "IdentifierLiteral",
+                      "value": "next_fib"
+                    }
                   }
                 ]
               }
